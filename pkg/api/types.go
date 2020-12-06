@@ -48,10 +48,17 @@ type Cluster struct {
 	// Not all cluster products allow you to customize this.
 	KubernetesVersion string `json:"kubernetesVersion,omitempty" yaml:"kubernetesVersion,omitempty"`
 
+	Mounts []ExtraMount `json:"extraMounts,omitempty" yaml:"extraMounts,omitempty"`
+
 	// Most recently observed status of the cluster.
 	// Populated by the system.
 	// Read-only.
 	Status ClusterStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+type ExtraMount struct {
+	HostPath      string `json:"hostPath,omitempty" yaml:"hostPath,omitempty"`
+	ContainerPath string `json:"containerPath,omitempty" yaml:"containerPath,omitempty"`
 }
 
 type ClusterStatus struct {

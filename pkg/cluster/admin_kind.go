@@ -67,16 +67,45 @@ func (a *kindAdmin) Create(ctx context.Context, desired *api.Cluster, registry *
 	in := strings.NewReader("")
 
 	if registry != nil {
+		mounts := ""
+
+		if desired.Mounts != nil {
+			extraMounts := []string{}
+
+			for _, mount := range desired.Mounts {
+				extraMounts = append(extraMounts, fmt.Sprintf(`
+      - hostPath: %s
+        containerPath: %s
+`,
+					mount.HostPath, mount.ContainerPath,
+				))
+			}
+
+			mounts = fmt.Sprintf(`
+nodes:
+  - role: control-plane
+    extraMounts:
+%s
+`,
+				strings.Join(extraMounts, "\n"),
+			)
+		}
+
 		containerdConfig := fmt.Sprintf(`
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+%s
 containerdConfigPatches:
 - |-
   [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:%d"]
     endpoint = ["http://%s:%d"]
   [plugins."io.containerd.grpc.v1.cri".registry.mirrors."%s:%d"]
     endpoint = ["http://%s:%d"]
-`, registry.Status.HostPort, registry.Name, registry.Status.ContainerPort,
+  [plugins."io.containerd.grpc.v1.cri".containerd]
+    disable_snapshot_annotations = true
+`,
+			mounts,
+			registry.Status.HostPort, registry.Name, registry.Status.ContainerPort,
 			registry.Name, registry.Status.ContainerPort, registry.Name, registry.Status.ContainerPort)
 		in = strings.NewReader(containerdConfig)
 
