@@ -200,7 +200,7 @@ func (c *Controller) Apply(ctx context.Context, desired *api.Registry) (*api.Reg
 	portSpec := fmt.Sprintf("%d:5000", hostPort)
 
 	_, _ = fmt.Fprintf(c.iostreams.ErrOut, "Creating registry %q...\n", desired.Name)
-	cmd := exec.CommandContext(ctx, "docker", "run", "-d", "--restart=always", "-p", portSpec, "--name", desired.Name, "registry:2")
+	cmd := exec.CommandContext(ctx, "docker", "run", "-d", "--restart=always", "-p", portSpec, "--name", desired.Name, "-e", "REGISTRY_STORAGE_DELETE_ENABLED=true", "registry:2")
 	err = cmd.Run()
 	if err != nil {
 		return nil, err
